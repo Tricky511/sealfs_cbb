@@ -89,7 +89,7 @@ impl ClientConnection {
         request.extend_from_slice(&(meta_data_length as u32).to_le_bytes());
         request.extend_from_slice(&(data_length as u32).to_le_bytes());
         request.extend_from_slice(filename.as_bytes());
-        if total_length < MAX_COPY_LENGTH {
+        // if total_length < MAX_COPY_LENGTH {
             request.extend_from_slice(meta_data);
             request.extend_from_slice(data);
             self.write_stream
@@ -99,12 +99,12 @@ impl ClientConnection {
                 .await
                 .write_all(&request)
                 .await?;
-        } else {
-            let mut g = self.write_stream.as_ref().unwrap().lock().await;
-            g.write_all(&request).await?;
-            g.write_all(meta_data).await?;
-            g.write_all(data).await?;
-        }
+        // } else {
+        //     let mut g = self.write_stream.as_ref().unwrap().lock().await;
+        //     g.write_all(&request).await?;
+        //     g.write_all(meta_data).await?;
+        //     g.write_all(data).await?;
+        // }
         Ok(())
     }
 
@@ -244,16 +244,16 @@ impl ServerConnection {
         response.extend_from_slice(&(total_length as u32).to_le_bytes());
         response.extend_from_slice(&(meta_data_length as u32).to_le_bytes());
         response.extend_from_slice(&(data_length as u32).to_le_bytes());
-        if total_length < MAX_COPY_LENGTH {
+        // if total_length < MAX_COPY_LENGTH {
             response.extend_from_slice(meta_data);
             response.extend_from_slice(data);
             self.write_stream.lock().await.write_all(&response).await?;
-        } else {
-            let mut g = self.write_stream.lock().await;
-            g.write_all(&response).await?;
-            g.write_all(meta_data).await?;
-            g.write_all(data).await?;
-        }
+        // } else {
+        //     let mut g = self.write_stream.lock().await;
+        //     g.write_all(&response).await?;
+        //     g.write_all(meta_data).await?;
+        //     g.write_all(data).await?;
+        // }
         Ok(())
     }
 

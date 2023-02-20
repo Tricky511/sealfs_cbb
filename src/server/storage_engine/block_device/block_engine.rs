@@ -81,7 +81,7 @@ impl StorageEngine for BlockEngine {
         todo!()
     }
 
-    fn is_exist(&self, _path: String) -> Result<bool, EngineError> {
+    fn is_exist(&self, _path: String) -> bool {
         todo!()
     }
 

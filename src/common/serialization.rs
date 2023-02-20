@@ -109,7 +109,7 @@ impl OperationType {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 pub struct FileAttrSimple {
     pub size: u64,
     pub blocks: u64,
@@ -280,7 +280,7 @@ impl From<FileAttrSimple> for fuser::FileAttr {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 pub struct SubDirectory {
     pub sub_dir: BTreeMap<String, String>,
 }

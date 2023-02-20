@@ -30,7 +30,7 @@ pub trait StorageEngine {
 
     fn delete_directory_recursive(&self, path: String) -> Result<(), EngineError>;
 
-    fn is_exist(&self, path: String) -> Result<bool, EngineError>;
+    fn is_exist(&self, path: String) -> bool;
 
     fn directory_add_entry(
         &self,

@@ -6,6 +6,7 @@ use crate::common::{
 };
 
 use crate::rpc::client::Client;
+use libc::{DT_DIR, DT_REG};
 use log::debug;
 use nix::sys::stat::Mode;
 use std::{sync::Arc, vec};
@@ -67,7 +68,7 @@ where
     }
 
     pub async fn create_dir(&self, path: String, mode: Mode) -> Result<Vec<u8>, EngineError> {
-        if self.local_storage.is_exist(path.clone())? {
+        if self.local_storage.is_exist(path.clone()) {
             return Err(EngineError::Exist);
         }
 
@@ -78,16 +79,11 @@ where
                 "local create dir, path: {}, parent_dir: {}, file_name: {}",
                 path, parent_dir, file_name
             );
-            self.local_storage.directory_add_entry(
-                parent_dir,
-                file_name,
-                fuser::FileType::Directory as u8,
-            )?;
+            self.local_storage
+                .directory_add_entry(parent_dir, file_name, DT_DIR)?;
         } else {
-            let send_meta_data = bincode::serialize(&DirectoryEntrySendMetaData {
-                file_type: fuser::FileType::Directory as u8,
-            })
-            .unwrap();
+            let send_meta_data =
+                bincode::serialize(&DirectoryEntrySendMetaData { file_type: DT_DIR }).unwrap();
             let (mut status, mut rsp_flags, mut recv_meta_data_length, mut recv_data_length) =
                 (0, 0, 0, 0);
             let mut recv_meta_data = vec![];
@@ -128,7 +124,7 @@ where
     }
 
     pub async fn delete_dir(&self, path: String) -> Result<(), EngineError> {
-        if !self.local_storage.is_exist(path.clone())? {
+        if !self.local_storage.is_exist(path.clone()) {
             return Ok(());
         }
         let (parent_dir, file_name) = path_split(path.clone())?;
@@ -137,13 +133,11 @@ where
             self.local_storage.directory_delete_entry(
                 parent_dir.clone(),
                 file_name.clone(),
-                fuser::FileType::Directory as u8,
+                DT_DIR,
             )?;
         } else {
-            let send_meta_data = bincode::serialize(&DirectoryEntrySendMetaData {
-                file_type: fuser::FileType::Directory as u8,
-            })
-            .unwrap();
+            let send_meta_data =
+                bincode::serialize(&DirectoryEntrySendMetaData { file_type: DT_DIR }).unwrap();
             let (mut status, mut rsp_flags, mut recv_meta_data_length, mut recv_data_length) =
                 (0, 0, 0, 0);
             let mut recv_meta_data = vec![];
@@ -193,23 +187,18 @@ where
 
     pub async fn create_file(&self, path: String, mode: Mode) -> Result<Vec<u8>, EngineError> {
         debug!("create file: {}", path);
-        if self.local_storage.is_exist(path.clone())? {
-            return Err(EngineError::Exist);
-        }
+        // if self.local_storage.is_exist(path.clone()) {
+        //     return Err(EngineError::Exist);
+        // }
         let (parent_dir, file_name) = path_split(path.clone())?;
         let address = get_connection_address(parent_dir.as_str()).unwrap();
         if self.address == address {
             debug!("create file local: {}", path);
-            self.local_storage.directory_add_entry(
-                parent_dir,
-                file_name,
-                fuser::FileType::RegularFile as u8,
-            )?;
+            self.local_storage
+                .directory_add_entry(parent_dir, file_name, DT_REG)?;
         } else {
-            let send_meta_data = bincode::serialize(&DirectoryEntrySendMetaData {
-                file_type: fuser::FileType::RegularFile as u8,
-            })
-            .unwrap();
+            let send_meta_data =
+                bincode::serialize(&DirectoryEntrySendMetaData { file_type: DT_REG }).unwrap();
             let (mut status, mut rsp_flags, mut recv_meta_data_length, mut recv_data_length) =
                 (0, 0, 0, 0);
             let mut recv_meta_data = vec![];
@@ -249,23 +238,18 @@ where
     }
 
     pub async fn delete_file(&self, path: String) -> Result<(), EngineError> {
-        if !self.local_storage.is_exist(path.clone())? {
+        if !self.local_storage.is_exist(path.clone()) {
             return Ok(());
         }
 
         let (parent_dir, file_name) = path_split(path.clone())?;
         let address = get_connection_address(parent_dir.as_str()).unwrap();
         if self.address == address {
-            self.local_storage.directory_delete_entry(
-                parent_dir,
-                file_name,
-                fuser::FileType::RegularFile as u8,
-            )?;
+            self.local_storage
+                .directory_delete_entry(parent_dir, file_name, DT_REG)?;
         } else {
-            let send_meta_data = bincode::serialize(&DirectoryEntrySendMetaData {
-                file_type: fuser::FileType::RegularFile as u8,
-            })
-            .unwrap();
+            let send_meta_data =
+                bincode::serialize(&DirectoryEntrySendMetaData { file_type: DT_REG }).unwrap();
             let (mut status, mut rsp_flags, mut recv_meta_data_length, mut recv_data_length) =
                 (0, 0, 0, 0);
             let mut recv_meta_data = vec![];
